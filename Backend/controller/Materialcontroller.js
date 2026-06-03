@@ -354,6 +354,108 @@ const getWishlist = async (req, res) => {
   }
 };
 
+const getCreatorStats = async (req, res) => {
+  try {
+    const creatorId = req.user.id;
+
+    const materials = await Material.find({ creator: creatorId });
+
+    // total uploads
+    const totalUploads = materials.length;
+
+    // total downloads + views
+    const totalDownloads = materials.reduce(
+      (sum, item) => sum + item.downloads,
+      0
+    );
+
+    const totalViews = materials.reduce(
+      (sum, item) => sum + item.views,
+      0
+    );
+
+    // average rating
+    const avgRating =
+      materials.length > 0
+        ? materials.reduce((sum, item) => sum + item.averageRating, 0) /
+          materials.length
+        : 0;
+
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalUploads,
+        totalDownloads,
+        totalViews,
+        avgRating,
+      },
+
+      topMaterials,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+
+    const topMaterials = await Material.find({ creator: creatorId })
+   .sort({ downloads: -1 })
+   .limit(5);
+
+  }
+};
+
+const approveMaterial = async (req, res) => {
+  try {
+    const material = await Material.findByIdAndUpdate(
+      req.params.id,
+      { isApproved: true },
+      { new: true }
+    );
+
+    if (!material) {
+      return res.status(404).json({
+        success: false,
+        message: "Material not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Material approved",
+      material,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const deleteMaterial = async (req, res) => {
+  try {
+    const material = await Material.findByIdAndDelete(req.params.id);
+
+    if (!material) {
+      return res.status(404).json({
+        success: false,
+        message: "Material not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Material deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
     createMaterial,
     getMaterials,
@@ -365,5 +467,8 @@ module.exports = {
     getMaterialReviews,
     addToWishlist,
     removeFromWishlist,
-    getWishlist
+    getWishlist,
+    getCreatorStats,
+    approveMaterial,
+    deleteMaterial
 };    

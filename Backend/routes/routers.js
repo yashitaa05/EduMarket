@@ -19,11 +19,13 @@ const {
   getMaterialReviews,
   addToWishlist,
   removeFromWishlist,
-  getWishlist
+  getWishlist,
+  getCreatorStats
 } = require("../controller/materialController");
 
 const authmiddleware = require("../middleware/authmiddleware");
 const authorizeRoles = require("../middleware/rolemiddleware");
+const adminmiddleware = require("../middleware/adminmiddleware");
 const upload = require("../middleware/multer");
 
 // ================= USER ROUTES =================
@@ -120,6 +122,30 @@ router.get(
   "/wishlist",
   authmiddleware,
   getWishlist
+);
+
+// creator stats route
+router.get("/creator/stats", authmiddleware, getCreatorStats);
+
+router.put(
+  "/admin/material/:id/approve",
+  authmiddleware,
+  adminmiddleware,
+  approveMaterial
+);
+
+router.delete(
+  "/admin/material/:id",
+  authmiddleware,
+  adminmiddleware,
+  deleteMaterial
+);
+
+router.get(
+  "/admin/users",
+  authmiddleware,
+  adminmiddleware,
+  getAllUsers
 );
 
 module.exports = router;
