@@ -3,14 +3,16 @@ const connection = require("./config/db");
 const dotenv = require("dotenv");
 const authroutes = require("./routes/routers");
 const materialroutes = require("./routes/routers");
-
+const cors = require("cors");
 
 dotenv.config();
 
-const app = express();
+
+const app = express(); 
 connection
   .then(() => {
     console.log("MongoDB Connected");
+    app.use(cors());
     app.use(express.json());
 
     app.use("/api/auth", authroutes);

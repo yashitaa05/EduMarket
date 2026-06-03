@@ -6,6 +6,7 @@ const {
   login,
   getProfile,
   getallusers,
+  getCurrentUser
 } = require("../controller/usercontroller");
 
 const {
@@ -20,6 +21,7 @@ const {
   addToWishlist,
   removeFromWishlist,
   getWishlist,
+  approveMaterial,
   getCreatorStats
 } = require("../controller/materialController");
 
@@ -142,10 +144,16 @@ router.delete(
 );
 
 router.get(
-  "/admin/users",
+  "/me",
   authmiddleware,
-  adminmiddleware,
-  getAllUsers
+  getCurrentUser
 );
+
+// router.get(
+//   "/admin/users",
+//   authmiddleware,
+//   adminmiddleware,
+//   getAllUsers
+// );
 
 module.exports = router;
