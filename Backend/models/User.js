@@ -22,7 +22,13 @@ const userSchema =  new mongoose.Schema({
     mobile_number: {
         type: String,
         required: true
-    }
+    },
+    wishlist: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Material",
+  },
+],
 });
 
 module.exports = mongoose.model('User', userSchema);

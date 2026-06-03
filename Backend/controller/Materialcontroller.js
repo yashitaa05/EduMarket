@@ -283,6 +283,76 @@ const addReview = async (req, res) => {
     });
   }};
 
+const addToWishlist = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        $addToSet: {
+          wishlist: req.params.materialId,
+        },
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Added to wishlist",
+      wishlist: user.wishlist,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const removeFromWishlist = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        $pull: {
+          wishlist: req.params.materialId,
+        },
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Removed from wishlist",
+      wishlist: user.wishlist,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}; 
+
+const getWishlist = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .populate("wishlist");
+
+    res.status(200).json({
+      success: true,
+      count: user.wishlist.length,
+      wishlist: user.wishlist,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 module.exports = {
     createMaterial,
@@ -292,5 +362,8 @@ module.exports = {
     deleteMaterial,   
     downloadMaterial,
     addReview,
-    getMaterialReviews
+    getMaterialReviews,
+    addToWishlist,
+    removeFromWishlist,
+    getWishlist
 };    

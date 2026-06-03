@@ -16,7 +16,10 @@ const {
   deleteMaterial,
   downloadMaterial,
   addReview,
-  getMaterialReviews
+  getMaterialReviews,
+  addToWishlist,
+  removeFromWishlist,
+  getWishlist
 } = require("../controller/materialController");
 
 const authmiddleware = require("../middleware/authmiddleware");
@@ -98,6 +101,25 @@ router.post(
 router.get(
   "/materials/:id/reviews",
   getMaterialReviews
+);
+
+// Wishlist route
+router.post(
+  "/wishlist/:materialId",
+  authmiddleware,
+  addToWishlist
+);
+
+router.delete(
+  "/wishlist/:materialId",
+  authmiddleware,
+  removeFromWishlist
+);
+
+router.get(
+  "/wishlist",
+  authmiddleware,
+  getWishlist
 );
 
 module.exports = router;
