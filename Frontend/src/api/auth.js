@@ -9,7 +9,7 @@ export const loginUser =
       );
 
     return response.data;
-};
+  };
 
 export const registerUser =
   async (userData) => {
@@ -20,7 +20,7 @@ export const registerUser =
       );
 
     return response.data;
-};
+  };
 
 export const getCurrentUser =
   async () => {
@@ -30,4 +30,4 @@ export const getCurrentUser =
       );
 
     return response.data;
-};
+  };

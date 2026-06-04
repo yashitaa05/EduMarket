@@ -8,69 +8,40 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Actual search query sent to backend
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
 
-  // Input field value
-  const [searchInput, setSearchInput] =
-    useState("");
+  const [category, setCategory] = useState("");
+  const [sort, setSort] = useState("");
 
-  // Filter
-  const [category, setCategory] =
-    useState("");
-
-  // Sort
-  const [sort, setSort] =
-    useState("");
-
-  // Pagination
-  const [page, setPage] =
-    useState(1);
-
-  const [totalPages, setTotalPages] =
-    useState(1);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     fetchMaterials();
-  }, [
-    search,
-    category,
-    sort,
-    page,
-  ]);
+  }, [search, category, sort, page]);
 
-  const fetchMaterials =
-    async () => {
-      try {
-        setLoading(true);
-        setError("");
+  const fetchMaterials = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-        const data =
-          await getMaterials({
-            search,
-            category,
-            sort,
-            page,
-          });
+      const data = await getMaterials({
+        search,
+        category,
+        sort,
+        page,
+      });
 
-        setMaterials(
-          data.materials || []
-        );
-
-        setTotalPages(
-          data.totalPages || 1
-        );
-
-      } catch (error) {
-        console.error(error);
-
-        setError(
-          "Failed to fetch materials"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
+      setMaterials(data.materials || []);
+      setTotalPages(data.totalPages || 1);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch materials");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = () => {
     setPage(1);
@@ -87,8 +58,8 @@ const Home = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-20">
-        <div className="text-xl font-semibold">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-lg font-semibold text-gray-600 animate-pulse">
           Loading materials...
         </div>
       </div>
@@ -97,162 +68,118 @@ const Home = () => {
 
   if (error) {
     return (
-      <div className="text-center text-red-500 py-10">
-        {error}
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-500 text-lg">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="min-h-screen bg-gray-50">
 
-      <h1 className="text-3xl font-bold mb-6">
-        Study Materials
-      </h1>
+      <div className="max-w-7xl mx-auto p-6">
 
-      {/* Search */}
+        {/* Header */}
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">
+          📚 Study Materials
+        </h1>
 
-      <SearchBar
-        search={searchInput}
-        setSearch={setSearchInput}
-        onSearch={handleSearch}
-      />
-
-      {/* Filters */}
-
-      <div className="flex flex-wrap gap-4 mb-6">
-
-        <select
-          value={category}
-          onChange={(e) => {
-            setCategory(
-              e.target.value
-            );
-            setPage(1);
-          }}
-          className="border p-2 rounded"
-        >
-          <option value="">
-            All Categories
-          </option>
-
-          <option value="Programming">
-            Programming
-          </option>
-
-          <option value="Web Development">
-            Web Development
-          </option>
-
-          <option value="DBMS">
-            DBMS
-          </option>
-
-          <option value="DSA">
-            DSA
-          </option>
-        </select>
-
-        <select
-          value={sort}
-          onChange={(e) => {
-            setSort(
-              e.target.value
-            );
-            setPage(1);
-          }}
-          className="border p-2 rounded"
-        >
-          <option value="">
-            Latest
-          </option>
-
-          <option value="downloads">
-            Most Downloaded
-          </option>
-
-          <option value="rating">
-            Highest Rated
-          </option>
-        </select>
-
-        <button
-          onClick={clearFilters}
-          className="bg-gray-500 text-white px-4 py-2 rounded"
-        >
-          Clear Filters
-        </button>
-
-      </div>
-
-      {/* Results Count */}
-
-      <p className="text-gray-600 mb-4">
-        Found {materials.length} materials
-      </p>
-
-      {/* Empty State */}
-
-      {materials.length === 0 ? (
-        <div className="text-center mt-10">
-          <h2 className="text-xl">
-            No materials found
-          </h2>
+        {/* Search */}
+        <div className="bg-white p-4 rounded-xl shadow-sm mb-6">
+          <SearchBar
+            search={searchInput}
+            setSearch={setSearchInput}
+            onSearch={handleSearch}
+          />
         </div>
-      ) : (
-        <>
-          {/* Materials Grid */}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Filters */}
+        <div className="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-4 items-center">
 
-            {materials.map(
-              (material) => (
-                <MaterialCard
-                  key={
-                    material._id
-                  }
-                  material={
-                    material
-                  }
-                />
-              )
-            )}
+          <select
+            value={category}
+            onChange={(e) => {
+              setCategory(e.target.value);
+              setPage(1);
+            }}
+            className="border px-3 py-2 rounded-lg text-sm"
+          >
+            <option value="">All Categories</option>
+            <option value="Programming">Programming</option>
+            <option value="Web Development">Web Development</option>
+            <option value="DBMS">DBMS</option>
+            <option value="DSA">DSA</option>
+          </select>
 
+          <select
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value);
+              setPage(1);
+            }}
+            className="border px-3 py-2 rounded-lg text-sm"
+          >
+            <option value="">Latest</option>
+            <option value="downloads">Most Downloaded</option>
+            <option value="rating">Highest Rated</option>
+          </select>
+
+          <button
+            onClick={clearFilters}
+            className="ml-auto bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition"
+          >
+            Clear Filters
+          </button>
+        </div>
+
+        {/* Results */}
+        <p className="text-gray-600 mb-4">
+          Found <span className="font-semibold">{materials.length}</span> materials
+        </p>
+
+        {/* Empty State */}
+        {materials.length === 0 ? (
+          <div className="text-center py-20">
+            <h2 className="text-xl font-semibold text-gray-700">
+              No materials found
+            </h2>
+            <p className="text-gray-500 mt-2">
+              Try changing filters or search terms
+            </p>
           </div>
+        ) : (
+          <>
+            {/* Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {materials.map((material) => (
+                <MaterialCard
+                  key={material._id}
+                  material={material}
+                />
+              ))}
+            </div>
 
-          {/* Pagination */}
-
-          <div className="flex justify-center gap-2 mt-8 flex-wrap">
-
-            {[...Array(totalPages)].map(
-              (_, index) => (
+            {/* Pagination */}
+            <div className="flex justify-center mt-10 gap-2 flex-wrap">
+              {[...Array(totalPages)].map((_, index) => (
                 <button
                   key={index}
-                  disabled={
-                    page ===
-                    index + 1
-                  }
-                  onClick={() =>
-                    setPage(
-                      index + 1
-                    )
-                  }
-                  className={`px-4 py-2 border rounded transition ${
-                    page ===
-                    index + 1
+                  onClick={() => setPage(index + 1)}
+                  disabled={page === index + 1}
+                  className={`px-4 py-2 rounded-lg border transition text-sm ${
+                    page === index + 1
                       ? "bg-blue-600 text-white"
                       : "hover:bg-gray-100"
                   }`}
                 >
                   {index + 1}
                 </button>
-              )
-            )}
+              ))}
+            </div>
+          </>
+        )}
 
-          </div>
-        </>
-      )}
-
+      </div>
     </div>
   );
 };

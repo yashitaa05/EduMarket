@@ -30,24 +30,25 @@ console.log("req.body =", req.body);
 console.log("role =", role);
 
 // Create user
+const allowedRoles = ["student", "creator", "admin"];
 const newUser = await user.create({
       name,
       email,
       password: hashedPassword,
       mobile_number,
-      role: role === "creator" ? "creator" : "student"
+      role: allowedRoles.includes(role) ? role : "student"
     });
 console.log("saved user =", newUser);
 
 // Success response
     res.status(201).json({
       message: "User Registered Successfully",
-
       user: {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
         mobile_number: newUser.mobile_number,
+        role: newUser.role,
       },
     });
 
@@ -117,11 +118,11 @@ console.log(existingUser.role);
     res.status(200).json({
       message: "Login Successful",
       token,
-
       user: {
         id: existingUser._id,
         name: existingUser.name,
         email: existingUser.email,
+        role: existingUser.role,
       },
     });
 
