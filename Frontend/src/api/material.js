@@ -42,22 +42,23 @@ export const addReview = async (
   return response.data;
 };
 
-export const uploadMaterial =
-  async (formData) => {
+export const uploadMaterial = async (formData) => {
+  try {
+    const token = localStorage.getItem("token");
 
-    const response =
-      await API.post(
-        "/materials",
-        formData,
-        {
-          headers: {
-            "Content-Type":
-              "multipart/form-data",
-          },
-        }
-      );
+    const response = await API.post("/materials", formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     return response.data;
+  } catch (error) {
+    console.error(
+      "Upload Material Error:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
 };
-
 

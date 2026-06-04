@@ -6,7 +6,7 @@ const {
   login,
   getProfile,
   getallusers,
-  getCurrentUser
+  getCurrentUser,
 } = require("../controller/usercontroller");
 
 const {
@@ -22,7 +22,8 @@ const {
   removeFromWishlist,
   getWishlist,
   approveMaterial,
-  getCreatorStats
+  getCreatorStats,
+  getMyMaterials
 } = require("../controller/materialController");
 
 const authmiddleware = require("../middleware/authmiddleware");
@@ -30,25 +31,36 @@ const authorizeRoles = require("../middleware/rolemiddleware");
 const adminmiddleware = require("../middleware/adminmiddleware");
 const upload = require("../middleware/multer");
 
+
 // ================= USER ROUTES =================
 
 router.post("/register", register);
 router.post("/login", login);
+
 router.get("/profile", authmiddleware, getProfile);
 
-router.get(
-  "/users",
-  authmiddleware,
-  authorizeRoles("admin"),
-  getallusers
-);
+router.get( "/me", authmiddleware, getCurrentUser );
+
+router.get( "/users", authmiddleware, authorizeRoles("admin"), getallusers);
 
 // ================= MATERIAL ROUTES =================
 
-// Get all materials
+// GET /api/materials
 router.get("/", getMaterials);
 
-// Upload PDF
+// POST /api/materials
+router.post(
+  "/",
+  authmiddleware,
+  authorizeRoles("creator", "admin"),
+  upload.fields([
+    { name: "thumbnail", maxCount: 1 },
+    { name: "pdf", maxCount: 1 },
+  ]),
+  createMaterial
+);
+
+// POST /api/materials/upload-pdf
 router.post(
   "/upload-pdf",
   authmiddleware,
@@ -61,53 +73,17 @@ router.post(
   }
 );
 
-// Create Material
-router.post(
-  "/create",
-  authmiddleware,
-  authorizeRoles("creator", "admin"),
-  upload.fields([
-  { name: "thumbnail", maxCount: 1 },
-  { name: "pdf", maxCount: 1 },
-]),
-  createMaterial
-);
+// ================= CREATOR =================
 
-// Update Material
-router.put(
-  "/:id",
-  authmiddleware,
-  authorizeRoles("creator", "admin"),
-  updateMaterial
-);
-
-// Delete Material
-router.delete(
-  "/:id",
-  authmiddleware,
-  authorizeRoles("creator", "admin"),
-  deleteMaterial
-);
-
-// Download Material
-router.get("/materials/:id/download", authmiddleware, downloadMaterial);
-
-
-// Get Single Material (keep at bottom)
-router.get("/:id", getMaterialById);
-
-router.post(
-  "/materials/:id/review",
-  authmiddleware,
-  addReview
-);
-
+// GET /api/materials/creator/stats
 router.get(
-  "/materials/:id/reviews",
-  getMaterialReviews
+  "/creator/stats",
+  authmiddleware,
+  getCreatorStats
 );
 
-// Wishlist route
+// ================= WISHLIST =================
+
 router.post(
   "/wishlist/:materialId",
   authmiddleware,
@@ -126,8 +102,29 @@ router.get(
   getWishlist
 );
 
-// creator stats route
-router.get("/creator/stats", authmiddleware, getCreatorStats);
+// ================= MATERIAL ACTIONS =================
+
+// GET /api/materials/:id/download
+router.get(
+  "/:id/download",
+  authmiddleware,
+  downloadMaterial
+);
+
+// POST /api/materials/:id/review
+router.post(
+  "/:id/review",
+  authmiddleware,
+  addReview
+);
+
+// GET /api/materials/:id/reviews
+router.get(
+  "/:id/reviews",
+  getMaterialReviews
+);
+
+// ================= ADMIN =================
 
 router.put(
   "/admin/material/:id/approve",
@@ -143,17 +140,30 @@ router.delete(
   deleteMaterial
 );
 
+// ================= SINGLE MATERIAL =================
+// KEEP THESE LAST
+
 router.get(
-  "/me",
+  "/my-materials",
   authmiddleware,
-  getCurrentUser
+  getMyMaterials
 );
 
-// router.get(
-//   "/admin/users",
-//   authmiddleware,
-//   adminmiddleware,
-//   getAllUsers
-// );
+router.get("/:id", getMaterialById);
+
+router.put(
+  "/:id",
+  authmiddleware,
+  authorizeRoles("creator", "admin"),
+  updateMaterial
+);
+
+router.delete(
+  "/:id",
+  authmiddleware,
+  authorizeRoles("creator", "admin"),
+  deleteMaterial
+);
+
 
 module.exports = router;

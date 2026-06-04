@@ -21,8 +21,13 @@ const Login = () => {
     }
 
     try {
+      // const data = await loginUser({ email, password });
+      // login(data.user, data.token);
+
       const data = await loginUser({ email, password });
+      console.log("LOGIN RESPONSE:", data);
       login(data.user, data.token);
+      
       navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(

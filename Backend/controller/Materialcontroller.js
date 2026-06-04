@@ -1,5 +1,6 @@
 const Material = require("../models/material");
 const Review = require("../models/review");
+const User = require("../models/User");
 
 const createMaterial = async (req, res) => {
   try {
@@ -95,6 +96,8 @@ const getMaterials = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 const getMaterialById = async (req, res) => {
     try {
@@ -358,28 +361,35 @@ const getCreatorStats = async (req, res) => {
   try {
     const creatorId = req.user.id;
 
-    const materials = await Material.find({ creator: creatorId });
+    const materials = await Material.find({
+      creator: creatorId,
+    });
 
-    // total uploads
     const totalUploads = materials.length;
 
-    // total downloads + views
     const totalDownloads = materials.reduce(
-      (sum, item) => sum + item.downloads,
+      (sum, item) => sum + (item.downloads || 0),
       0
     );
 
     const totalViews = materials.reduce(
-      (sum, item) => sum + item.views,
+      (sum, item) => sum + (item.views || 0),
       0
     );
 
-    // average rating
     const avgRating =
       materials.length > 0
-        ? materials.reduce((sum, item) => sum + item.averageRating, 0) /
-          materials.length
+        ? materials.reduce(
+            (sum, item) => sum + (item.averageRating || 0),
+            0
+          ) / materials.length
         : 0;
+
+    const topMaterials = await Material.find({
+      creator: creatorId,
+    })
+      .sort({ downloads: -1 })
+      .limit(5);
 
     res.status(200).json({
       success: true,
@@ -389,19 +399,15 @@ const getCreatorStats = async (req, res) => {
         totalViews,
         avgRating,
       },
-
       topMaterials,
     });
   } catch (error) {
+    console.error("Creator Stats Error:", error);
+
     res.status(500).json({
       success: false,
       message: error.message,
     });
-
-    const topMaterials = await Material.find({ creator: creatorId })
-   .sort({ downloads: -1 })
-   .limit(5);
-
   }
 };
 
@@ -433,6 +439,30 @@ const approveMaterial = async (req, res) => {
   }
 };
 
+const getMyMaterials = async (req, res) => {
+  try {
+    console.log("Logged in user ID:", req.user.id);
+
+    const materials = await Material.find({
+      creator: req.user.id,
+    });
+
+    console.log("Materials found:", materials);
+
+    res.status(200).json({
+      success: true,
+      data: materials,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 module.exports = {
     createMaterial,
     getMaterials,
@@ -446,5 +476,6 @@ module.exports = {
     removeFromWishlist,
     getWishlist,
     getCreatorStats,
-    approveMaterial
+    approveMaterial,
+    getMyMaterials
 };    

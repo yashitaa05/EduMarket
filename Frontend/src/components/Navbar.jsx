@@ -39,10 +39,10 @@ const Navbar = () => {
             {(user?.role === "creator" || user?.role === "admin") && (
               <>
                 <Link
-                  to="/upload"
+                  to="/upload-materials"
                   className="text-slate-600 hover:text-indigo-600 transition"
                 >
-                  Upload
+                  Upload Material
                 </Link>
                 <Link
                   to="/my-materials"

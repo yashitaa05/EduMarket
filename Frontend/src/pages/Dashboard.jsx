@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { getCreatorStats } from "../api/dashboard";
 import { useAuth } from "../context/Authcontext";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
   const [stats, setStats] = useState({});
   const [topMaterials, setTopMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +36,7 @@ const Dashboard = () => {
     }
   };
 
-  if (!user || (user && !user.role)) {
+  if (!user || !user.role) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <p className="text-lg text-slate-600">Loading user settings...</p>
@@ -61,59 +64,69 @@ const Dashboard = () => {
     );
   }
 
+  /* ---------------- STUDENT DASHBOARD ---------------- */
   if (user.role === "student") {
     return (
       <div className="min-h-screen bg-slate-50 px-4 py-8">
         <div className="max-w-4xl mx-auto rounded-3xl bg-white border border-slate-200 p-8 shadow-xl">
-          <h1 className="text-4xl font-bold mb-4 text-slate-900">Student Dashboard</h1>
+          <h1 className="text-4xl font-bold mb-4 text-slate-900">
+            Student Dashboard
+          </h1>
+
           <p className="text-slate-600 mb-6">
-            Welcome back, <span className="font-semibold">{user.name}</span>! Explore materials, save favorites, and track your wishlist.
+            Welcome back, <span className="font-semibold">{user.name}</span>!
           </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-3xl border border-slate-200 p-6 bg-slate-50">
-              <h2 className="text-xl font-semibold mb-2">Browse Study Materials</h2>
-              <p className="text-slate-600 mb-4">
-                Visit the home page to search and filter the latest uploads.
-              </p>
-              <a
-                href="/home"
-                className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition"
-              >
-                Go to Materials
-              </a>
-            </div>
-            <div className="rounded-3xl border border-slate-200 p-6 bg-slate-50">
-              <h2 className="text-xl font-semibold mb-2">Your Profile</h2>
-              <p className="text-slate-600">Email: {user.email}</p>
-              <p className="text-slate-600">Role: {user.role}</p>
-              <p className="text-slate-600 mt-3">Use the Wishlist page to save important items.</p>
-            </div>
-          </div>
+
+          <a
+            href="/home"
+            className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition"
+          >
+            Go to Materials
+          </a>
         </div>
       </div>
     );
   }
 
+  /* ---------------- CREATOR / ADMIN DASHBOARD ---------------- */
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-8">
       <div className="max-w-7xl mx-auto p-6">
-        <h1 className="text-4xl font-bold mb-8 text-slate-900">
-          {user.role === "admin" ? "Admin Dashboard" : "Creator Dashboard"}
-        </h1>
 
+        {/* HEADER */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <h1 className="text-4xl font-bold text-slate-900">
+            {user.role === "admin"
+              ? "Admin Dashboard"
+              : "Creator Dashboard"}
+          </h1>
+
+          {/* 🔥 NEW UPLOAD BUTTON */}
+          <button
+            onClick={() => navigate("/upload-material")}
+            className="bg-indigo-600 text-white px-5 py-3 rounded-xl hover:bg-indigo-700 transition"
+          >
+            + Upload Material
+          </button>
+        </div>
+
+        {/* STATS */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white border rounded-3xl shadow p-6">
             <h3 className="text-gray-500 text-sm uppercase">Total Uploads</h3>
             <p className="text-4xl font-bold mt-2">{stats.totalUploads || 0}</p>
           </div>
+
           <div className="bg-white border rounded-3xl shadow p-6">
             <h3 className="text-gray-500 text-sm uppercase">Total Views</h3>
             <p className="text-4xl font-bold mt-2">{stats.totalViews || 0}</p>
           </div>
+
           <div className="bg-white border rounded-3xl shadow p-6">
             <h3 className="text-gray-500 text-sm uppercase">Total Downloads</h3>
             <p className="text-4xl font-bold mt-2">{stats.totalDownloads || 0}</p>
           </div>
+
           <div className="bg-white border rounded-3xl shadow p-6">
             <h3 className="text-gray-500 text-sm uppercase">Average Rating</h3>
             <p className="text-4xl font-bold mt-2">
@@ -122,8 +135,11 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* TOP MATERIALS */}
         <div className="mt-12">
-          <h2 className="text-3xl font-bold mb-6 text-slate-900">Top Performing Materials</h2>
+          <h2 className="text-3xl font-bold mb-6 text-slate-900">
+            Top Performing Materials
+          </h2>
 
           {topMaterials.length === 0 ? (
             <div className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-600">
@@ -132,20 +148,34 @@ const Dashboard = () => {
           ) : (
             <div className="space-y-4">
               {topMaterials.map((material) => (
-                <div key={material._id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <h3 className="text-xl font-semibold text-slate-900">{material.title}</h3>
+                <div
+                  key={material._id}
+                  className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                >
+                  <h3 className="text-xl font-semibold text-slate-900">
+                    {material.title}
+                  </h3>
+
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 text-slate-600">
                     <div>
                       <p className="text-sm">Downloads</p>
-                      <p className="font-bold text-slate-900">{material.downloads || 0}</p>
+                      <p className="font-bold text-slate-900">
+                        {material.downloads || 0}
+                      </p>
                     </div>
+
                     <div>
                       <p className="text-sm">Views</p>
-                      <p className="font-bold text-slate-900">{material.views || 0}</p>
+                      <p className="font-bold text-slate-900">
+                        {material.views || 0}
+                      </p>
                     </div>
+
                     <div>
                       <p className="text-sm">Rating</p>
-                      <p className="font-bold text-slate-900">{material.averageRating || 0}</p>
+                      <p className="font-bold text-slate-900">
+                        {material.averageRating || 0}
+                      </p>
                     </div>
                   </div>
                 </div>
