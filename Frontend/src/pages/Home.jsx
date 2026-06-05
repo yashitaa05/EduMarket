@@ -8,8 +8,8 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
 
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("");
@@ -36,7 +36,6 @@ const Home = () => {
       setMaterials(data.materials || []);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
-      console.error(err);
       setError("Failed to fetch materials");
     } finally {
       setLoading(false);
@@ -56,11 +55,13 @@ const Home = () => {
     setPage(1);
   };
 
+  const hasFilters = search || category || sort;
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-lg font-semibold text-gray-600 animate-pulse">
-          Loading materials...
+        <div className="text-lg font-semibold animate-pulse">
+          Loading courses...
         </div>
       </div>
     );
@@ -68,8 +69,8 @@ const Home = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-500 text-lg">{error}</div>
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        {error}
       </div>
     );
   }
@@ -79,12 +80,17 @@ const Home = () => {
 
       <div className="max-w-7xl mx-auto p-6">
 
-        {/* Header */}
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">
-          📚 Study Materials
-        </h1>
+        {/* HERO HEADER (Udemy style) */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">
+            Learn from Study Materials 📚
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Browse, download and save high-quality notes
+          </p>
+        </div>
 
-        {/* Search */}
+        {/* SEARCH */}
         <div className="bg-white p-4 rounded-xl shadow-sm mb-6">
           <SearchBar
             search={searchInput}
@@ -93,7 +99,7 @@ const Home = () => {
           />
         </div>
 
-        {/* Filters */}
+        {/* FILTER BAR */}
         <div className="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-4 items-center">
 
           <select
@@ -106,7 +112,7 @@ const Home = () => {
           >
             <option value="">All Categories</option>
             <option value="Programming">Programming</option>
-            <option value="Web Development">Web Development</option>
+            <option value="Web Development">Web Dev</option>
             <option value="DBMS">DBMS</option>
             <option value="DSA">DSA</option>
           </select>
@@ -121,52 +127,63 @@ const Home = () => {
           >
             <option value="">Latest</option>
             <option value="downloads">Most Downloaded</option>
-            <option value="rating">Highest Rated</option>
+            <option value="rating">Top Rated</option>
           </select>
 
-          <button
-            onClick={clearFilters}
-            className="ml-auto bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition"
-          >
-            Clear Filters
-          </button>
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              className="ml-auto bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
 
-        {/* Results */}
-        <p className="text-gray-600 mb-4">
-          Found <span className="font-semibold">{materials.length}</span> materials
-        </p>
+        {/* RESULTS INFO */}
+        <div className="flex justify-between items-center mb-4">
+          <p className="text-gray-600">
+            Showing <span className="font-semibold">{materials.length}</span> results
+          </p>
 
-        {/* Empty State */}
+          <p className="text-sm text-gray-500">
+            Page {page} of {totalPages}
+          </p>
+        </div>
+
+        {/* EMPTY STATE */}
         {materials.length === 0 ? (
           <div className="text-center py-20">
-            <h2 className="text-xl font-semibold text-gray-700">
-              No materials found
-            </h2>
+            <h2 className="text-xl font-semibold">No materials found</h2>
             <p className="text-gray-500 mt-2">
-              Try changing filters or search terms
+              Try different search or filters
             </p>
           </div>
         ) : (
           <>
-            {/* Grid */}
+            {/* GRID */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {materials.map((material) => (
-                <MaterialCard
-                  key={material._id}
-                  material={material}
-                />
+                <MaterialCard key={material._id} material={material} />
               ))}
             </div>
 
-            {/* Pagination */}
+            {/* PAGINATION (IMPROVED) */}
             <div className="flex justify-center mt-10 gap-2 flex-wrap">
+
+              <button
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                disabled={page === 1}
+                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+              >
+                Prev
+              </button>
+
               {[...Array(totalPages)].map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setPage(index + 1)}
-                  disabled={page === index + 1}
-                  className={`px-4 py-2 rounded-lg border transition text-sm ${
+                  className={`px-4 py-2 rounded-lg border ${
                     page === index + 1
                       ? "bg-blue-600 text-white"
                       : "hover:bg-gray-100"
@@ -175,6 +192,17 @@ const Home = () => {
                   {index + 1}
                 </button>
               ))}
+
+              <button
+                onClick={() =>
+                  setPage((p) => Math.min(p + 1, totalPages))
+                }
+                disabled={page === totalPages}
+                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+              >
+                Next
+              </button>
+
             </div>
           </>
         )}
