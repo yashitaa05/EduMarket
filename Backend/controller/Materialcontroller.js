@@ -463,6 +463,15 @@ const getMyMaterials = async (req, res) => {
     });
   }
 };
+
+const getPendingMaterials = async (req, res) => {
+  try {
+    const materials = await Material.find({ status: "pending" });
+    res.json(materials);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 module.exports = {
     createMaterial,
     getMaterials,
@@ -477,5 +486,6 @@ module.exports = {
     getWishlist,
     getCreatorStats,
     approveMaterial,
-    getMyMaterials
+    getMyMaterials,
+    getPendingMaterials
 };    

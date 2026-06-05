@@ -9,10 +9,13 @@ import Wishlist from "../pages/wishlist";
 import MaterialDetail from "../pages/MaterialDetail";
 import MyMaterials from "../pages/MyMaterial";
 
+import AdminDashboard from "../pages/AdminDashboard";
+import ManageUsers from "../pages/ManageUsers";
+
 import ProtectedRoute from "../components/ProtectedRoute";
 import { useAuth } from "../context/Authcontext";
 
-// 🔥 Entry redirect logic
+// 🔥 Redirect based on auth
 const HomeRedirect = () => {
   const { isAuthenticated, loading } = useAuth();
 
@@ -35,11 +38,9 @@ const AppRoute = () => {
       {/* Public Routes */}
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
-
-      {/* Optional public landing (can also protect if needed) */}
       <Route path="/home" element={<Home />} />
 
-      {/* Protected Core Routes */}
+      {/* Protected User Routes */}
       <Route
         path="/dashboard"
         element={
@@ -76,12 +77,30 @@ const AppRoute = () => {
         }
       />
 
-      {/* Material routes */}
       <Route
         path="/material/:id"
         element={
           <ProtectedRoute>
             <MaterialDetail />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 🔥 ADMIN ROUTES */}
+      <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute>
+            <ManageUsers />
           </ProtectedRoute>
         }
       />

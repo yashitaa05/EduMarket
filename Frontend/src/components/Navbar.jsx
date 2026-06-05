@@ -6,11 +6,16 @@ const Navbar = () => {
 
   return (
     <nav className="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 p-4 border-b bg-white shadow-sm sticky top-0 z-40">
+
+      {/* LOGO */}
       <Link to="/home" className="font-semibold text-lg text-slate-900">
         Marketplace
       </Link>
 
+      {/* NAV LINKS */}
       <div className="flex flex-wrap gap-3 items-center">
+
+        {/* PUBLIC */}
         <Link
           to="/home"
           className="text-slate-600 hover:text-indigo-600 transition"
@@ -18,6 +23,7 @@ const Navbar = () => {
           Browse
         </Link>
 
+        {/* AUTHENTICATED USERS */}
         {isAuthenticated && (
           <>
             <Link
@@ -27,23 +33,28 @@ const Navbar = () => {
               Dashboard
             </Link>
 
+            {/* STUDENT ONLY */}
             {user?.role === "student" && (
-              <Link
-                to="/wishlist"
-                className="text-slate-600 hover:text-indigo-600 transition"
-              >
-                Wishlist
-              </Link>
-            )}
-
-            {(user?.role === "creator" || user?.role === "admin") && (
               <>
                 <Link
-                  to="/upload-materials"
+                  to="/wishlist"
+                  className="text-slate-600 hover:text-indigo-600 transition"
+                >
+                  Wishlist
+                </Link>
+              </>
+            )}
+
+            {/* CREATOR ONLY */}
+            {user?.role === "creator" && (
+              <>
+                <Link
+                  to="/upload-material"
                   className="text-slate-600 hover:text-indigo-600 transition"
                 >
                   Upload Material
                 </Link>
+
                 <Link
                   to="/my-materials"
                   className="text-slate-600 hover:text-indigo-600 transition"
@@ -52,9 +63,29 @@ const Navbar = () => {
                 </Link>
               </>
             )}
+
+            {/* ADMIN ONLY */}
+            {user?.role === "admin" && (
+              <>
+                <Link
+                  to="/admin/dashboard"
+                  className="text-slate-600 hover:text-indigo-600 transition"
+                >
+                  Admin Panel
+                </Link>
+
+                <Link
+                  to="/admin/users"
+                  className="text-slate-600 hover:text-indigo-600 transition"
+                >
+                  Manage Users
+                </Link>
+              </>
+            )}
           </>
         )}
 
+        {/* AUTH LINKS */}
         {!isAuthenticated && (
           <>
             <Link
@@ -63,6 +94,7 @@ const Navbar = () => {
             >
               Login
             </Link>
+
             <Link
               to="/register"
               className="text-slate-600 hover:text-indigo-600 transition"
@@ -73,6 +105,7 @@ const Navbar = () => {
         )}
       </div>
 
+      {/* LOGOUT */}
       {isAuthenticated && (
         <button
           onClick={logout}

@@ -67,6 +67,11 @@ numReviews: {
   type: Number,
   default: 0,
 },
+
+status: {
+  type: String,
+  default: "pending",
+},
   isApproved: {
     type: Boolean,
     default: false

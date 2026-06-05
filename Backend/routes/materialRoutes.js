@@ -2,14 +2,6 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  register,
-  login,
-  getProfile,
-  getallusers,
-  getCurrentUser,
-} = require("../controller/usercontroller");
-
-const {
   createMaterial,
   getMaterials,
   getMaterialById,
@@ -21,34 +13,18 @@ const {
   addToWishlist,
   removeFromWishlist,
   getWishlist,
-  approveMaterial,
   getCreatorStats,
-  getMyMaterials
+  getMyMaterials,
 } = require("../controller/materialController");
 
 const authmiddleware = require("../middleware/authmiddleware");
 const authorizeRoles = require("../middleware/rolemiddleware");
-const adminmiddleware = require("../middleware/adminmiddleware");
 const upload = require("../middleware/multer");
 
-
-// ================= USER ROUTES =================
-
-router.post("/register", register);
-router.post("/login", login);
-
-router.get("/profile", authmiddleware, getProfile);
-
-router.get( "/me", authmiddleware, getCurrentUser );
-
-router.get( "/users", authmiddleware, authorizeRoles("admin"), getallusers);
-
-// ================= MATERIAL ROUTES =================
-
-// GET /api/materials
+// Get all materials
 router.get("/", getMaterials);
 
-// POST /api/materials
+// Create material
 router.post(
   "/",
   authmiddleware,
@@ -60,7 +36,7 @@ router.post(
   createMaterial
 );
 
-// POST /api/materials/upload-pdf
+// Upload PDF
 router.post(
   "/upload-pdf",
   authmiddleware,
@@ -73,17 +49,21 @@ router.post(
   }
 );
 
-// ================= CREATOR =================
-
-// GET /api/materials/creator/stats
+// Creator Stats
 router.get(
   "/creator/stats",
   authmiddleware,
   getCreatorStats
 );
 
-// ================= WISHLIST =================
+// My Materials
+router.get(
+  "/my-materials",
+  authmiddleware,
+  getMyMaterials
+);
 
+// Wishlist
 router.post(
   "/wishlist/:materialId",
   authmiddleware,
@@ -102,53 +82,26 @@ router.get(
   getWishlist
 );
 
-// ================= MATERIAL ACTIONS =================
-
-// GET /api/materials/:id/download
+// Download
 router.get(
   "/:id/download",
   authmiddleware,
   downloadMaterial
 );
 
-// POST /api/materials/:id/review
+// Reviews
 router.post(
   "/:id/review",
   authmiddleware,
   addReview
 );
 
-// GET /api/materials/:id/reviews
 router.get(
   "/:id/reviews",
   getMaterialReviews
 );
 
-// ================= ADMIN =================
-
-router.put(
-  "/admin/material/:id/approve",
-  authmiddleware,
-  adminmiddleware,
-  approveMaterial
-);
-
-router.delete(
-  "/admin/material/:id",
-  authmiddleware,
-  adminmiddleware,
-  deleteMaterial
-);
-
-// ================= SINGLE MATERIAL =================
-// KEEP THESE LAST
-
-router.get(
-  "/my-materials",
-  authmiddleware,
-  getMyMaterials
-);
-
+// Keep ID routes last
 router.get("/:id", getMaterialById);
 
 router.put(
@@ -164,6 +117,5 @@ router.delete(
   authorizeRoles("creator", "admin"),
   deleteMaterial
 );
-
 
 module.exports = router;

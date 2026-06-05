@@ -4,19 +4,22 @@ import { getCurrentUser } from "../api/auth";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(
-    localStorage.getItem("token") || null
-  );
-
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadUser = async () => {
-      if (!token) {
+      const storedToken = localStorage.getItem("token");
+
+      if (!storedToken) {
+        setUser(null);
+        setToken(null);
         setLoading(false);
         return;
       }
+
+      setToken(storedToken);
 
       try {
         const response = await getCurrentUser();
@@ -31,21 +34,22 @@ export const AuthProvider = ({ children }) => {
     };
 
     loadUser();
-  }, [token]);
+  }, []);
 
   const login = (userData, tokenData) => {
-    setUser(userData);
-    setToken(tokenData);
     localStorage.setItem("token", tokenData);
+    setToken(tokenData);
+    setUser(userData);
   };
 
   const logout = () => {
-    setUser(null);
-    setToken(null);
     localStorage.removeItem("token");
+    setToken(null);
+    setUser(null);
   };
 
-  const isAuthenticated = !!token;
+  // IMPORTANT: user-based auth is correct
+  const isAuthenticated = !!user;
 
   return (
     <AuthContext.Provider
@@ -63,6 +67,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);

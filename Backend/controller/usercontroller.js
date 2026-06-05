@@ -137,7 +137,7 @@ console.log(existingUser.role);
   }
 };
 
-const getallusers = async (req, res) => {
+const getAllUsers = async (req, res) => {
   try {
     const users = await user.find().select("-password");  
     res.status(200).json({
@@ -195,6 +195,6 @@ module.exports = {
   register,
   login,
   getProfile,
-  getallusers,
+  getAllUsers,
   getCurrentUser,
 };
