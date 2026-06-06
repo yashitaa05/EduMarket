@@ -1,64 +1,21 @@
 import API from "./axios";
 
-export const getMaterials = async (params = {}) => {
-  const response = await API.get("/materials", {
-    params,
-  });
+export const getMaterials = (params) =>
+  API.get("/materials", { params }).then(res => res.data);
 
-  return response.data;
-};
+export const getMaterialById = (id) =>
+  API.get(`/materials/${id}`).then(res => res.data);
 
-export const getMaterialById = async (id) => {
-  const response = await API.get(`/materials/${id}`);
+export const downloadMaterial = (id) =>
+  API.get(`/materials/${id}/download`, { responseType: "blob" })
+    .then(res => res.data);
 
-  return response.data;
-};
+export const getMaterialReviews = (id) =>
+  API.get(`/materials/${id}/reviews`).then(res => res.data);
 
-export const downloadMaterial = async (id) => {
-  const response = await API.get(
-    `/materials/${id}/download`
-  );
+export const addReview = (id, reviewData) =>
+  API.post(`/materials/${id}/reviews`, reviewData)
+    .then(res => res.data);
 
-  return response.data;
-};
-
-export const getMaterialReviews = async (id) => {
-  const response = await API.get(
-    `/materials/${id}/reviews`
-  );
-
-  return response.data;
-};
-
-export const addReview = async (
-  id,
-  reviewData
-) => {
-  const response = await API.post(
-    `/materials/${id}/review`,
-    reviewData
-  );
-
-  return response.data;
-};
-
-export const uploadMaterial = async (formData) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    const response = await API.post("/materials", formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error(
-      "Upload Material Error:",
-      error.response?.data || error.message
-    );
-    throw error;
-  }
-};
-
+export const uploadMaterial = (formData) =>
+  API.post("/materials", formData).then(res => res.data);

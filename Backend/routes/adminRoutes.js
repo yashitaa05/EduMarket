@@ -11,9 +11,8 @@ const {
 
 const authmiddleware = require("../middleware/authmiddleware");
 const authorizeRoles = require("../middleware/rolemiddleware");
-const adminmiddleware = require("../middleware/adminmiddleware");
 
-// Get all users
+// ================= ADMIN USERS =================
 router.get(
   "/users",
   authmiddleware,
@@ -21,28 +20,60 @@ router.get(
   getAllUsers
 );
 
-// Pending materials
+// ================= ADMIN MATERIALS =================
 router.get(
-  "/pending",
+  "/materials/pending",
   authmiddleware,
   authorizeRoles("admin"),
   getPendingMaterials
 );
 
-// Approve material
 router.put(
-  "/material/:id/approve",
+  "/materials/:id/approve",
   authmiddleware,
-  adminmiddleware,
+  authorizeRoles("admin"),
   approveMaterial
 );
 
-// Delete material
 router.delete(
-  "/material/:id",
+  "/materials/:id",
   authmiddleware,
-  adminmiddleware,
+  authorizeRoles("admin"),
   deleteMaterial
+);
+
+router.delete(
+  "/users/:id",
+  authmiddleware,
+  authorizeRoles("admin"),
+  async (req, res) => {
+    try {
+      const userId = req.params.id;
+
+      const User = require("../models/User"); // adjust path if needed
+
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      await User.findByIdAndDelete(userId);
+
+      res.json({
+        success: true,
+        message: "User deleted successfully",
+      });
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        message: err.message,
+      });
+    }
+  }
 );
 
 module.exports = router;

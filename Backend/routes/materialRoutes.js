@@ -3,7 +3,7 @@ const router = express.Router();
 
 const {
   createMaterial,
-  getMaterials,
+  getAllMaterials,
   getMaterialById,
   updateMaterial,
   deleteMaterial,
@@ -15,16 +15,28 @@ const {
   getWishlist,
   getCreatorStats,
   getMyMaterials,
-} = require("../controller/materialController");
+
+  // Admin Approval Functions
+  getPendingMaterials,
+  approveMaterial,
+} = require("../controller/materialcontroller");
 
 const authmiddleware = require("../middleware/authmiddleware");
 const authorizeRoles = require("../middleware/rolemiddleware");
 const upload = require("../middleware/multer");
 
-// Get all materials
-router.get("/", getMaterials);
+// =======================
+// PUBLIC ROUTES
+// =======================
 
-// Create material
+// Get all approved materials
+router.get("/", getAllMaterials);
+
+// =======================
+// CREATOR ROUTES
+// =======================
+
+// Create Material
 router.post(
   "/",
   authmiddleware,
@@ -56,14 +68,17 @@ router.get(
   getCreatorStats
 );
 
-// My Materials
+// Creator Materials
 router.get(
   "/my-materials",
   authmiddleware,
   getMyMaterials
 );
 
-// Wishlist
+// =======================
+// WISHLIST ROUTES
+// =======================
+
 router.post(
   "/wishlist/:materialId",
   authmiddleware,
@@ -82,14 +97,20 @@ router.get(
   getWishlist
 );
 
-// Download
+// =======================
+// DOWNLOAD ROUTES
+// =======================
+
 router.get(
   "/:id/download",
   authmiddleware,
   downloadMaterial
 );
 
-// Reviews
+// =======================
+// REVIEW ROUTES
+// =======================
+
 router.post(
   "/:id/review",
   authmiddleware,
@@ -101,7 +122,29 @@ router.get(
   getMaterialReviews
 );
 
-// Keep ID routes last
+// =======================
+// ADMIN APPROVAL ROUTES
+// =======================
+
+router.get(
+  "/admin/pending",
+  authmiddleware,
+  authorizeRoles("admin"),
+  getPendingMaterials
+);
+
+router.put(
+  "/admin/material/:id/approve",
+  authmiddleware,
+  authorizeRoles("admin"),
+  approveMaterial
+);
+
+// =======================
+// MATERIAL CRUD ROUTES
+// KEEP THESE LAST
+// =======================
+
 router.get("/:id", getMaterialById);
 
 router.put(

@@ -1,80 +1,60 @@
-import axios from "axios";
+import API from "./axios";
 
-// Base URL (change if your backend runs on different port/domain)
-const API = axios.create({
-  baseURL: "http://localhost:8000/api/admin",
-});
+/**
+ * ADMIN: MATERIAL MANAGEMENT
+ */
 
-// Optional: attach token automatically (if using JWT auth)
-API.interceptors.request.use((req) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    req.headers.Authorization = `Bearer ${token}`;
-  }
-  return req;
-});
-
-
-// 📌 Get all pending materials (for admin approval)
+// Get all pending materials
 export const getPendingMaterials = async () => {
   try {
-    const res = await API.get("/pending");
+    const res = await API.get("/admin/materials/pending");
     return res.data;
-  } catch (error) {
-    console.error("Error fetching pending materials:", error);
-    throw error;
+  } catch (err) {
+    throw err.response?.data || err.message;
   }
 };
 
-
-// 📌 Approve a material
+// Approve material
 export const approveMaterial = async (id) => {
   try {
-    const res = await API.put(`/approve/${id}`);
+    const res = await API.put(`/admin/materials/${id}/approve`);
     return res.data;
-  } catch (error) {
-    console.error("Error approving material:", error);
-    throw error;
+  } catch (err) {
+    throw err.response?.data || err.message;
   }
 };
 
-
-// 📌 Delete a material
+// Delete material
 export const deleteMaterial = async (id) => {
   try {
-    const res = await API.delete(`/delete/${id}`);
+    const res = await API.delete(`/admin/materials/${id}`);
     return res.data;
-  } catch (error) {
-    console.error("Error deleting material:", error);
-    throw error;
+  } catch (err) {
+    throw err.response?.data || err.message;
   }
 };
 
-export const deleteUser = async (id) => {
-  try {
-    const res = await API.delete(`/user/delete/${id}`);
-    return res.data;
-  } catch (error) {
-    console.error("Error deleting user:", error);
-    throw error;
-  }
-};
 
+/**
+ * ADMIN: USER MANAGEMENT
+ */
+
+// Get all users
 export const getAllUsers = async () => {
   try {
-    const res = await API.get("/users");
+    const res = await API.get("/admin/users");
     return res.data;
-  } catch (error) {
-    console.error("Error fetching users:", error.message);
-    throw error;
+  } catch (err) {
+    throw err.response?.data || err.message;
   }
 };
-export const updateUserRole = async (id, role) => {
+
+// Delete user
+export const deleteUser = async (id) => {
   try {
-    const res = await API.put(`/user/role/${id}`, { role });
+    const res = await API.delete(`/admin/users/${id}`);
     return res.data;
-  } catch (error) {
-    console.error("Error updating user role:", error);
-    throw error;
+  } catch (err) {
+    throw err.response?.data || err.message;
   }
 };

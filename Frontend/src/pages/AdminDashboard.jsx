@@ -12,15 +12,18 @@ const AdminDashboard = () => {
   }, []);
 
   const fetchPending = async () => {
-    try {
-      const data = await getPendingMaterials();
-      setPending(data.materials || []);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+
+    const data = await getPendingMaterials();
+
+    setPending(data.materials || []);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleApprove = async (id) => {
     await approveMaterial(id);

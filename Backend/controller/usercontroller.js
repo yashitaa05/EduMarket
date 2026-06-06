@@ -166,8 +166,6 @@ const getProfile = async (req, res) => {
   }
 };
 
-const User = require("../models/User");
-
 const getCurrentUser = async (
   req,
   res

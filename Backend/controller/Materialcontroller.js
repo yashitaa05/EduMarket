@@ -2,20 +2,17 @@ const Material = require("../models/material");
 const Review = require("../models/review");
 const User = require("../models/User");
 
+// =========================
+// CREATE MATERIAL
+// =========================
 const createMaterial = async (req, res) => {
   try {
-    const {
-      title,
-      description,
-      subject,
-      category,
-      price,
-    } = req.body;
+    const { title, description, subject, category, price } = req.body;
 
-    const thumbnail = req.files?.thumbnail?.[0]?.path || "";
     const pdfUrl = req.files?.pdf?.[0]?.path || "";
+    const thumbnail = req.files?.thumbnail?.[0]?.path || "";
 
-    const newMaterial = await Material.create({
+    const material = await Material.create({
       title,
       description,
       subject,
@@ -24,205 +21,159 @@ const createMaterial = async (req, res) => {
       pdfUrl,
       thumbnail,
       creator: req.user.id,
+      status: "pending",
+      isApproved: false,
+      views: 0,
+      downloads: 0,
     });
 
     res.status(201).json({
-      message: "Material created successfully",
-      material: newMaterial,
+      success: true,
+      message: "Material submitted for approval",
+      material,
     });
   } catch (error) {
-    console.error("Error creating material:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
+// =========================
+// GET ALL MATERIALS (PUBLIC)
+// =========================
+const getAllMaterials = async (req, res) => {
+  try {
+    const materials = await Material.find({})
+      .populate("creator", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: materials,
+      count: materials.length,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// =========================
+// GET MATERIAL BY ID
+// =========================
+const getMaterialById = async (req, res) => {
+  try {
+    const material = await Material.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { views: 1 } },
+      { new: true }
+    ).populate("creator", "name email");
+
+    if (!material) {
+      return res.status(404).json({ message: "Material not found" });
+    }
+
+    res.status(200).json({
+      message: "Material retrieved successfully",
+      material,
+    });
+  } catch (error) {
     res.status(500).json({
-      message: "Server error while creating material",
+      message: "Server error",
       error: error.message,
     });
   }
 };
 
-const getMaterials = async (req, res) => {
+// =========================
+// UPDATE MATERIAL
+// =========================
+const updateMaterial = async (req, res) => {
   try {
-    const {
-      search,
-      subject,
-      category,
-      price,
-      sort = "newest",
-      page = 1,
-      limit = 10,
-    } = req.query;
+    const material = await Material.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
 
-    let filter = {};
-
-    // SEARCH
-    if (search) {
-      filter.title = { $regex: search, $options: "i" };
+    if (!material) {
+      return res.status(404).json({ message: "Material not found" });
     }
 
-    // FILTERS
-    if (subject) filter.subject = subject;
-    if (category) filter.category = category;
-
-    if (price === "free") filter.price = 0;
-    if (price === "paid") filter.price = { $gt: 0 };
-
-    // SORTING
-    let sortOption = {};
-
-    if (sort === "newest") sortOption.createdAt = -1;
-    if (sort === "oldest") sortOption.createdAt = 1;
-    if (sort === "popular") sortOption.downloads = -1;
-    if (sort === "rating") sortOption.averageRating = -1;
-
-    // PAGINATION
-    const skip = (page - 1) * limit;
-
-    const materials = await Material.find(filter)
-      .sort(sortOption)
-      .skip(skip)
-      .limit(Number(limit))
-      .populate("creator", "name email");
-
-    const total = await Material.countDocuments(filter);
-
-    res.json({
-      success: true,
-      total,
-      page: Number(page),
-      pages: Math.ceil(total / limit),
-      data: materials,
+    res.status(200).json({
+      message: "Material updated successfully",
+      material,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-
-
-const getMaterialById = async (req, res) => {
-    try {
-        const material = await Material.findByIdAndUpdate(
-             req.params.id,
-            { $inc: { views: 1 } },
-            { new: true }
-         ).populate("creator", "name email");
-
-        if (!material) {
-            return res.status(404).json({
-                message: "Material not found"
-            });
-        }
-        res.status(200).json({
-            message: "Material retrieved successfully",
-            material: material
-        });
-    } catch (error) {
-        console.error("Error retrieving material:", error);
-        res.status(500).json({
-            message: "Server error while retrieving material",
-            error: error.message
-        });
-    }
-};
-
-const updateMaterial = async (req, res) => {
-    try{
-        const material = await Material.findByIdAndUpdate(req.params.id, req.body, { new: true }, {runValidators: true});
-        if (!material) {
-            return res.status(404).json({
-                message: "Material not found"
-            });
-        }
-        res.status(200).json({
-            message: "Material updated successfully",
-            material: material
-        });
-    } catch (error) {
-        console.error("Error updating material:", error);
-        res.status(500).json({
-            message: "Server error while updating material",
-            error: error.message
-        });
-    }
-};
-
+// =========================
+// DELETE MATERIAL
+// =========================
 const deleteMaterial = async (req, res) => {
-    try {
-        const material = await Material.findByIdAndDelete(req.params.id);
-        if (!material) {
-            return res.status(404).json({
-                message: "Material not found"
-            });
-        }
-        res.status(200).json({
-            message: "Material deleted successfully",
-            material: material
-        });
-    } catch (error) {
-        console.error("Error deleting material:", error);
-        res.status(500).json({
-            message: "Server error while deleting material",
-            error: error.message
-        });
+  try {
+    const material = await Material.findById(req.params.id);
+
+    if (!material) {
+      return res.status(404).json({ message: "Material not found" });
     }
+
+    await material.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: "Material deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
+// =========================
+// DOWNLOAD TRACK
+// =========================
 const downloadMaterial = async (req, res) => {
-    try {
-        const material = await Material.findByIdAndUpdate(
-            req.params.id,
-            { $inc: { downloads: 1 } },
-            { new: true }
-        );
+  try {
+    const material = await Material.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { downloads: 1 } },
+      { new: true }
+    );
 
-        if (!material) {
-            return res.status(404).json({
-                success: false,
-                message: "Material not found"
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: "Download tracked successfully",
-            pdfUrl: material.pdfUrl
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+    if (!material) {
+      return res.status(404).json({ message: "Material not found" });
     }
+
+    res.status(200).json({
+      success: true,
+      pdfUrl: material.pdfUrl,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
+// =========================
+// REVIEW SYSTEM
+// =========================
 const addReview = async (req, res) => {
   try {
     const { rating, comment } = req.body;
 
     const material = await Material.findById(req.params.id);
-
     if (!material) {
-      return res.status(404).json({
-        success: false,
-        message: "Material not found",
-      });
+      return res.status(404).json({ message: "Material not found" });
     }
 
-    // Check duplicate review
-    const existingReview = await Review.findOne({
+    const existing = await Review.findOne({
       user: req.user.id,
       material: req.params.id,
     });
 
-    if (existingReview) {
-      return res.status(400).json({
-        success: false,
-        message: "You have already reviewed this material",
-      });
+    if (existing) {
+      return res.status(400).json({ message: "Already reviewed" });
     }
 
-    // Create review
     await Review.create({
       user: req.user.id,
       material: req.params.id,
@@ -230,42 +181,23 @@ const addReview = async (req, res) => {
       comment,
     });
 
-    // Recalculate rating
-    const reviews = await Review.find({
-      material: req.params.id,
-    });
+    const reviews = await Review.find({ material: req.params.id });
 
-    const totalRating = reviews.reduce(
-      (sum, review) => sum + review.rating,
-      0
-    );
-
-    const averageRating =
-      reviews.length > 0
-        ? totalRating / reviews.length
-        : 0;
+    const avg =
+      reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
 
     await Material.findByIdAndUpdate(req.params.id, {
-      averageRating,
+      averageRating: avg,
       numReviews: reviews.length,
     });
 
-    res.status(201).json({
-      success: true,
-      message: "Review added successfully",
-    });
-
+    res.status(201).json({ success: true, message: "Review added" });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-
-}
+    res.status(500).json({ message: error.message });
+  }
 };
 
-
-    const getMaterialReviews = async (req, res) => {
+const getMaterialReviews = async (req, res) => {
   try {
     const reviews = await Review.find({
       material: req.params.id,
@@ -278,37 +210,28 @@ const addReview = async (req, res) => {
       count: reviews.length,
       reviews,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
       message: error.message,
     });
-  }};
+  }
+};
 
+// =========================
+// WISHLIST
+// =========================
 const addToWishlist = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      {
-        $addToSet: {
-          wishlist: req.params.materialId,
-        },
-      },
+      { $addToSet: { wishlist: req.params.materialId } },
       { new: true }
     );
 
-    res.status(200).json({
-      success: true,
-      message: "Added to wishlist",
-      wishlist: user.wishlist,
-    });
-
+    res.json({ success: true, wishlist: user.wishlist });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -316,82 +239,52 @@ const removeFromWishlist = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      {
-        $pull: {
-          wishlist: req.params.materialId,
-        },
-      },
+      { $pull: { wishlist: req.params.materialId } },
       { new: true }
     );
 
-    res.status(200).json({
-      success: true,
-      message: "Removed from wishlist",
-      wishlist: user.wishlist,
-    });
-
+    res.json({ success: true, wishlist: user.wishlist });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
-}; 
+};
 
 const getWishlist = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id)
-      .populate("wishlist");
+    const user = await User.findById(req.user.id).populate("wishlist");
 
-    res.status(200).json({
+    res.json({
       success: true,
       count: user.wishlist.length,
       wishlist: user.wishlist,
     });
-
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
+// =========================
+// CREATOR STATS (FIXED)
+// =========================
 const getCreatorStats = async (req, res) => {
   try {
-    const creatorId = req.user.id;
-
-    const materials = await Material.find({
-      creator: creatorId,
-    });
+    const materials = await Material.find({ creator: req.user.id });
 
     const totalUploads = materials.length;
-
-    const totalDownloads = materials.reduce(
-      (sum, item) => sum + (item.downloads || 0),
-      0
-    );
-
-    const totalViews = materials.reduce(
-      (sum, item) => sum + (item.views || 0),
-      0
-    );
+    const totalDownloads = materials.reduce((a, b) => a + (b.downloads || 0), 0);
+    const totalViews = materials.reduce((a, b) => a + (b.views || 0), 0);
 
     const avgRating =
       materials.length > 0
-        ? materials.reduce(
-            (sum, item) => sum + (item.averageRating || 0),
-            0
-          ) / materials.length
+        ? materials.reduce((a, b) => a + (b.averageRating || 0), 0) /
+          materials.length
         : 0;
 
-    const topMaterials = await Material.find({
-      creator: creatorId,
-    })
+    const topMaterials = await Material.find({ creator: req.user.id })
       .sort({ downloads: -1 })
       .limit(5);
 
-    res.status(200).json({
+    res.json({
       success: true,
       stats: {
         totalUploads,
@@ -402,90 +295,75 @@ const getCreatorStats = async (req, res) => {
       topMaterials,
     });
   } catch (error) {
-    console.error("Creator Stats Error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
+// =========================
+// ADMIN APPROVAL
+// =========================
 const approveMaterial = async (req, res) => {
   try {
     const material = await Material.findByIdAndUpdate(
       req.params.id,
-      { isApproved: true },
+      { status: "approved", isApproved: true },
       { new: true }
     );
 
-    if (!material) {
-      return res.status(404).json({
-        success: false,
-        message: "Material not found",
-      });
-    }
-
-    res.status(200).json({
+    res.json({
       success: true,
-      message: "Material approved",
+      message: "Approved",
       material,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
+// =========================
+// MY MATERIALS
+// =========================
 const getMyMaterials = async (req, res) => {
   try {
-    console.log("Logged in user ID:", req.user.id);
+    const materials = await Material.find({ creator: req.user.id });
 
-    const materials = await Material.find({
-      creator: req.user.id,
-    });
-
-    console.log("Materials found:", materials);
-
-    res.status(200).json({
-      success: true,
-      data: materials,
-    });
-
+    res.json({ success: true, data: materials });
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
+// =========================
+// ADMIN: PENDING
+// =========================
 const getPendingMaterials = async (req, res) => {
   try {
-    const materials = await Material.find({ status: "pending" });
-    res.json(materials);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    const materials = await Material.find({ status: "pending" })
+      .populate("creator", "name email");
+
+    res.json({ success: true, materials });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
+
+// =========================
+// EXPORTS (IMPORTANT FIX)
+// =========================
 module.exports = {
-    createMaterial,
-    getMaterials,
-    getMaterialById,
-    updateMaterial,
-    deleteMaterial,   
-    downloadMaterial,
-    addReview,
-    getMaterialReviews,
-    addToWishlist,
-    removeFromWishlist,
-    getWishlist,
-    getCreatorStats,
-    approveMaterial,
-    getMyMaterials,
-    getPendingMaterials
-};    
+  createMaterial,
+  getAllMaterials,
+  getMaterialById,
+  updateMaterial,
+  deleteMaterial,
+  downloadMaterial,
+  addReview,
+  getMaterialReviews,
+  addToWishlist,
+  removeFromWishlist,
+  getWishlist,
+  getCreatorStats,
+  approveMaterial,
+  getMyMaterials,
+  getPendingMaterials,
+};
